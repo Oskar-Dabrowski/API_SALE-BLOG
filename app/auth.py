@@ -1,23 +1,22 @@
 from flask import Blueprint, request, jsonify
-from werkzeug.security import generate_password_hash, check_password_hash
-from flask_login import login_user, logout_user, login_required
-from .models import User, db
+from app.models import User, db
+from flask_jwt_extended import create_access_token
 
 auth = Blueprint('auth', __name__)
 
 @auth.route('/register', methods=['POST'])
 def register():
     data = request.get_json()
-    email = data.get('email')
     username = data.get('username')
+    email = data.get('email')
     password = data.get('password')
+    role = data.get('role', 'user')
 
     if User.query.filter_by(email=email).first():
         return jsonify({'message': 'Email already in use'}), 400
 
-    new_user = User(email=email, username=username)
+    new_user = User(username=username, email=email, role=role)
     new_user.set_password(password)
-
     db.session.add(new_user)
     db.session.commit()
 
@@ -26,17 +25,10 @@ def register():
 @auth.route('/login', methods=['POST'])
 def login():
     data = request.get_json()
-    user = User.query.filter_by(email=data.get('email')).first()
+    user = User.query.filter_by(email=data['email']).first()
 
-    if user and user.check_password(data.get('password')):
-        login_user(user)
-        return jsonify({'message': 'Login successful'}), 200
+    if user and user.check_password(data['password']):
+        access_token = create_access_token(identity=user.id)
+        return jsonify({'access_token': access_token}), 200
+
     return jsonify({'message': 'Invalid credentials'}), 401
-
-@auth.route('/logout')
-@login_required
-def logout():
-    logout_user()
-    return jsonify({'message': 'You have been logged out.'}), 200
-
-
