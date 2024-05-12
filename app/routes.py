@@ -1,6 +1,6 @@
 from flask import Blueprint, request, jsonify
 from flask_jwt_extended import jwt_required, get_jwt_identity
-from app.models import db, Post, Comment, IssueReport, ContactMessage, Rating
+from app.models import db, User, Post, Comment, IssueReport, ContactMessage, Rating
 
 main = Blueprint('main', __name__)
 
@@ -14,7 +14,6 @@ def posts():
         db.session.add(new_post)
         db.session.commit()
         return jsonify({'message': 'Post created'}), 201
-
     posts = Post.query.order_by(Post.created_at.desc()).all()
     return jsonify([{'id': post.id, 'title': post.title, 'content': post.content, 'created_at': post.created_at} for post in posts]), 200
 
@@ -26,18 +25,15 @@ def post_detail(post_id):
         post.views += 1
         db.session.commit()
         return jsonify({'title': post.title, 'content': post.content, 'views': post.views}), 200
-
     user_id = get_jwt_identity()
     if post.author_id != user_id:
         return jsonify({'message': 'Unauthorized'}), 403
-
     if request.method == 'PUT':
         data = request.get_json()
         post.title = data.get('title', post.title)
         post.content = data.get('content', post.content)
         db.session.commit()
         return jsonify({'message': 'Post updated'}), 200
-
     db.session.delete(post)
     db.session.commit()
     return jsonify({'message': 'Post deleted'}), 200
@@ -85,3 +81,34 @@ def contact_author():
     db.session.add(new_message)
     db.session.commit()
     return jsonify({'message': 'Message sent to author'}), 201
+
+# Nowe endpointy
+@main.route('/users', methods=['GET'])
+@jwt_required()
+def get_users():
+    users = User.query.all()
+    return jsonify([user.to_dict() for user in users]), 200
+
+@main.route('/users/<int:user_id>/set_admin', methods=['PUT'])
+@jwt_required()
+def set_admin(user_id):
+    admin_id = get_jwt_identity()
+    admin = User.query.get_or_404(admin_id)
+    if not admin.is_admin:
+        return jsonify({'message': 'Only admin can perform this action'}), 403
+    user = User.query.get_or_404(user_id)
+    user.is_admin = True
+    db.session.commit()
+    return jsonify({'message': f'User {user.username} promoted to admin'}), 200
+
+@main.route('/contact_messages', methods=['GET'])
+@jwt_required()
+def get_contact_messages():
+    messages = ContactMessage.query.all()
+    return jsonify([message.to_dict() for message in messages]), 200
+
+@main.route('/issues', methods=['GET'])
+@jwt_required()
+def get_issues():
+    issues = IssueReport.query.all()
+    return jsonify([issue.to_dict() for issue in issues]), 200
