@@ -7,7 +7,7 @@ def app():
     Create and configure a new app instance for each test.
     This fixture initializes the application, sets up the database, and tears it down after tests.
     """
-    app = create_app('testing')  # Ensure the testing config is loaded
+    app = create_app('testing')
     
     with app.app_context():
         db.create_all()

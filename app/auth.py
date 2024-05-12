@@ -11,11 +11,12 @@ def register():
     email = data.get('email')
     password = data.get('password')
     role = data.get('role', 'user')
+    is_admin = data.get('is_admin', False)
 
     if User.query.filter_by(email=email).first():
         return jsonify({'message': 'Email already in use'}), 400
 
-    new_user = User(username=username, email=email, role=role)
+    new_user = User(username=username, email=email, role=role, is_admin=is_admin)
     new_user.set_password(password)
     db.session.add(new_user)
     db.session.commit()
@@ -28,7 +29,7 @@ def login():
     user = User.query.filter_by(email=data['email']).first()
 
     if user and user.check_password(data['password']):
-        access_token = create_access_token(identity=user.id)
-        return jsonify({'access_token': access_token}), 200
+        access_token = create_access_token(identity={'id': user.id, 'is_admin': user.is_admin})
+        return jsonify({'access_token': access_token, 'is_admin': user.is_admin}), 200
 
     return jsonify({'message': 'Invalid credentials'}), 401

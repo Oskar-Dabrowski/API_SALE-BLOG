@@ -87,7 +87,7 @@ def contact_author():
 @jwt_required()
 def get_users():
     users = User.query.all()
-    return jsonify([user.to_dict() for user in users]), 200
+    return jsonify([{'username': user.username, 'email': user.email, 'is_admin': user.is_admin} for user in users]), 200
 
 @main.route('/users/<int:user_id>/set_admin', methods=['PUT'])
 @jwt_required()
@@ -105,10 +105,10 @@ def set_admin(user_id):
 @jwt_required()
 def get_contact_messages():
     messages = ContactMessage.query.all()
-    return jsonify([message.to_dict() for message in messages]), 200
+    return jsonify([{'subject': message.subject, 'message': message.message, 'user_id': message.user_id} for message in messages]), 200
 
 @main.route('/issues', methods=['GET'])
 @jwt_required()
 def get_issues():
     issues = IssueReport.query.all()
-    return jsonify([issue.to_dict() for issue in issues]), 200
+    return jsonify([{'title': issue.title, 'description': issue.description, 'user_id': issue.user_id} for issue in issues]), 200
