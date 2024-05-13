@@ -4,6 +4,10 @@ from app.models import db, User, Post, Comment, IssueReport, ContactMessage, Rat
 
 main = Blueprint('main', __name__)
 
+@main.route('/')
+def home():
+    return jsonify(message="Hello, World!")
+
 @main.route('/posts', methods=['GET', 'POST'])
 @jwt_required(optional=True)
 def posts():

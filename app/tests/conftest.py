@@ -1,23 +1,31 @@
 import pytest
 from app import create_app, db
-from app.config import Config
+from app.models import User
 
 @pytest.fixture(scope='module')
 def app():
-    """ Setup Flask app for testing. """
     app = create_app()
+    app.config.update({
+        "TESTING": True,
+        "SQLALCHEMY_DATABASE_URI": "sqlite:///:memory:"
+    })
     with app.app_context():
         db.create_all()
-        yield app
-        db.session.remove()
+    yield app
+    with app.app_context():
         db.drop_all()
 
-@pytest.fixture
+@pytest.fixture(scope='module')
 def client(app):
-    """ A test client for the app. This client can be used to send test requests to the application. """
     return app.test_client()
 
-@pytest.fixture
-def runner(app):
-    """ A test runner for the app's Click commands. This can be used to invoke CLI commands within the app context. """
-    return app.test_cli_runner()
+@pytest.fixture(scope='module')
+def init_database(app):
+    with app.app_context():
+        user = User(username='testuser', email='test@example.com', role='user', is_admin=False)
+        user.set_password('password')
+        db.session.add(user)
+        db.session.commit()
+        yield db
+        db.session.remove()
+        db.drop_all()
