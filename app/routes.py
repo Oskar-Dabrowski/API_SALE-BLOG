@@ -9,6 +9,8 @@ main = Blueprint('main', __name__)
 def posts():
     if request.method == 'POST':
         user_id = get_jwt_identity()
+        if user_id is None:
+            return jsonify({'message': 'Authorization required'}), 401
         data = request.get_json()
         new_post = Post(title=data['title'], content=data['content'], author_id=user_id)
         db.session.add(new_post)
@@ -82,7 +84,6 @@ def contact_author():
     db.session.commit()
     return jsonify({'message': 'Message sent to author'}), 201
 
-# Nowe endpointy
 @main.route('/users', methods=['GET'])
 @jwt_required()
 def get_users():
@@ -112,3 +113,17 @@ def get_contact_messages():
 def get_issues():
     issues = IssueReport.query.all()
     return jsonify([{'title': issue.title, 'description': issue.description, 'user_id': issue.user_id} for issue in issues]), 200
+
+@main.route('/posts/<int:post_id>/comments', methods=['GET'])
+@jwt_required(optional=True)
+def get_comments(post_id):
+    post = Post.query.get_or_404(post_id)
+    comments = Comment.query.filter_by(post_id=post_id).all()
+    return jsonify([{'id': comment.id, 'content': comment.content, 'author_id': comment.author_id} for comment in comments]), 200
+
+@main.route('/posts/<int:post_id>/ratings', methods=['GET'])
+@jwt_required(optional=True)
+def get_ratings(post_id):
+    post = Post.query.get_or_404(post_id)
+    ratings = Rating.query.filter_by(post_id=post_id).all()
+    return jsonify([{'id': rating.id, 'score': rating.score, 'user_id': rating.user_id} for rating in ratings]), 200
