@@ -24,7 +24,7 @@ greenlet==3.0.3
 h11==0.14.0
 idna==2.10
 iniconfig==2.0.0
-ipython==8.23.0
+ipython==8.18.1
 ipywidgets==8.1.2
 itsdangerous==2.1.2
 jedi==0.19.1
@@ -39,6 +39,7 @@ numpy==1.26.4
 packaging==24.0
 parso==0.8.4
 pillow==10.3.0
+pip==24.0
 pluggy==1.5.0
 prompt-toolkit==3.0.43
 pure-eval==0.2.2
