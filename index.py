@@ -1,7 +1,9 @@
 from flask import Flask, jsonify
 from asgiref.wsgi import WsgiToAsgi
+from app.routes import main  # Ensure routes.py is correctly referenced
 
 app = Flask(__name__)
+app.register_blueprint(main)
 
 @app.route("/")
 def home():
