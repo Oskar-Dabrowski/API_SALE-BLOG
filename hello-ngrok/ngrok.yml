@@ -1,0 +1,5 @@
+authtoken: 2gSDjcrbpnLzr1tOxXzLnn2CvJv_4c6iwxygqcMqwHYMVBjxJ
+tunnels:
+  my_tunnel:
+    proto: http
+    addr: 5000  # Replace with the port your local server is running on
